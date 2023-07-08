@@ -1,35 +1,32 @@
-{
-    "root": true,
-    "env": {
-      "es2022": true,
-      "node": true
-    },
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "project": [
-        "./tsconfig.eslint.json"
-      ],
-      "sourceType": "module",
-      "ecmaVersion": 2022
-    },
-    "settings": {
-      "import/resolver": {
-        "node": {
-          "extensions": [".js", ".jsx", ".ts", ".tsx"],
-          "moduleDirectory": ["node_modules", "src/"]
-        }
-      }
-    },
-    "rules": {
-       "block-spacing": "error",
+{"root": true,
+  "env": {
+    "es2022": true,
+    "node": true,
+    "jest": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": [
+      "./tsconfig.eslint.json"
+    ],
+    "sourceType": "module",
+    "ecmaVersion": 2022
+  },
+  "rules": {
+    "block-spacing": "error",
        "space-infix-ops": "error"
-    },
-    "plugins": [ "@typescript-eslint", "prettier" ],
-    "extends": [
-      "airbnb",
-      "airbnb-typescript",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:import/recommended",
-      "plugin:import/typescript"
-    ]
-  }
+  },
+  "plugins": [ "@typescript-eslint", "prettier" ],
+  "extends": [
+    "airbnb",
+    "airbnb-typescript",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript"
+  ],  
+  "ignorePatterns": [
+    ".eslintrc.js", 
+    "dist", 
+    "node_modules", 
+    "webpack.config.js"
+    ]}

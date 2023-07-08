@@ -1,25 +1,23 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
-    "allowJs": false,
-    "outDir": "./build",
-    "rootDir": "./src",
-    "noUnusedLocals": false,
-    "noUnusedParameters": true,
+    "module": "CommonJS",
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
+    "lib": ["ESNext"],
     "moduleResolution": "node",
-    "types": ["node", "jest"],
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": true
   },
-  "ts-node": {
-    "esm": true
-  },
-  "exclude": [
-    "node_modules/",
-    "__test__"
-  ],
   "include": [
     "./src/**/*.ts"
   ]

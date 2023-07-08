@@ -7,6 +7,7 @@ enum COMMANDS {
   finish = 'finish',
   update_room = 'update_room',
   update_winners = 'update_winners',
+  create_room = 'create_room',
 }
 
 export default COMMANDS;

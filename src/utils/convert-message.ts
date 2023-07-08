@@ -3,8 +3,8 @@ import { LoginMessage } from '../types/incoming';
 
 const getResponseFromMessage = (message: RawData) : LoginMessage => {
   const { data: dataMessage, ...rest } = JSON.parse(message.toString());
-
-  const data = JSON.parse(dataMessage);
+  console.log('message___', JSON.parse(message.toString()));
+  const data = dataMessage === '' ? dataMessage : JSON.parse(dataMessage);
 
   return {
     data,

@@ -6,7 +6,7 @@ export type LoginData = {
 };
 
 export type LoginMessage = {
-  type: COMMANDS.reg;
+  type: COMMANDS;
   data: LoginData;
 };
 

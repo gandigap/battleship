@@ -1,15 +1,18 @@
 import { WebSocket } from 'ws';
 
-import { UserWebSocket } from '../types';
+import { UserWebSocket, Winner } from '../types';
 import User from '../user';
 import { IncomingData } from '../types/incoming';
 
 class UsersDB {
   private users: User [];
 
+  private winners: Winner[];
+
   constructor() {
     console.log(' New user DB');
     this.users = [];
+    this.winners = [];
   }
 
   addUser(message : IncomingData, ws: WebSocket) {
@@ -44,6 +47,7 @@ class UsersDB {
     (ws as UserWebSocket).index = user.index;
 
     this.users.push(user);
+    this.winners.push({ name, wins: 0 });
 
     return {
       ...user,
@@ -54,6 +58,10 @@ class UsersDB {
 
   getExistUser(currentUserName: string) {
     return this.users.find(({ name }) => currentUserName === name);
+  }
+
+  getWinners() {
+    return this.winners;
   }
 }
 

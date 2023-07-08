@@ -1,10 +1,10 @@
 import { RawData } from 'ws';
-import { ConvertedMessage } from '../types';
+import { LoginMessage } from '../types/incoming';
 
-const getResponseFromMessage = (message: RawData) : ConvertedMessage => {
+const getResponseFromMessage = (message: RawData) : LoginMessage => {
   const { data: dataMessage, ...rest } = JSON.parse(message.toString());
-  console.log('dataMessage', dataMessage);
-  const data = dataMessage || JSON.parse(dataMessage);
+
+  const data = JSON.parse(dataMessage);
 
   return {
     data,

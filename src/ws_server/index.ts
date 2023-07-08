@@ -11,8 +11,8 @@ wsServer.on('connection', (ws) => {
   ws.on('message', (message: RawData) => {
     try {
       const convertedMessage = convertMessage(message);
-      console.log('Response', convertedMessage, controller);
-      controller.implementMessage(convertedMessage);
+
+      controller.implementMessage(convertedMessage, ws);
     } catch (error) {
       console.log('error');
     }

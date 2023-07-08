@@ -1,5 +1,9 @@
+import { WebSocket } from 'ws';
+
 import UsersDB from '../db';
-import { COMMANDS, ConvertedMessage } from '../types';
+import COMMANDS from '../types/commands';
+import getOutgoingMessage from '../utils/get-outgoing-message';
+import { LoginMessage } from '../types/incoming';
 
 class Controller {
   userDB: UsersDB;
@@ -8,12 +12,17 @@ class Controller {
     this.userDB = new UsersDB();
   }
 
-  implementMessage(convertedMessage: ConvertedMessage) {
+  implementMessage(convertedMessage: LoginMessage, ws : WebSocket) {
     const { type } = convertedMessage;
+    console.log('implementMessage', convertedMessage);
     switch (type) {
-      case COMMANDS.reg:
-        console.log('reg', this.userDB);
+      case COMMANDS.reg: {
+        const message = this.userDB.addUser(convertedMessage, ws);
+        const addUserMessage = getOutgoingMessage(COMMANDS.reg, message);
+
+        ws.send(addUserMessage);
         break;
+      }
 
       default:
         console.log('default');

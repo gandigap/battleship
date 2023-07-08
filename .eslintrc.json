@@ -15,7 +15,8 @@
   },
   "rules": {
     "block-spacing": "error",
-       "space-infix-ops": "error"
+    "space-infix-ops": "error",
+    "no-param-reassign": 0
   },
   "plugins": [ "@typescript-eslint", "prettier" ],
   "extends": [

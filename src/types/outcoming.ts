@@ -1,6 +1,6 @@
 import User from '../user';
 import { Winner } from '.';
-import { Ship } from './ship';
+import { AttackResult, Position, Ship } from './ship';
 
 export type ErrorMessage = {
   error: boolean;
@@ -30,9 +30,24 @@ export interface StartGameData {
   ships: Ship[];
 }
 
+export interface CurrentPlayerData {
+  currentPlayer: number;
+}
+
+export interface AttackData extends CurrentPlayerData {
+  position: Position;
+  status: AttackResult;
+}
+export interface FinishData {
+  winPlayer: number;
+}
+
 export type OutgoingData =
   | RegisterData
   | UpdateRoomData
   | UpdateWinnersData
   | CreateGameData
-  | StartGameData;
+  | StartGameData
+  | CurrentPlayerData
+  | AttackData
+  | FinishData;

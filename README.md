@@ -1,35 +1,3 @@
-# RSSchool NodeJS websocket task template
-> Static http server and base task packages. 
-> By default WebSocket client tries to connect to the 3000 port.
-
-## Installation
-1. Clone/download repo
-2. `npm install`
-
-## Usage
-**Development**
-
-`npm run start:dev`
-
-* App served @ `http://localhost:8181` with nodemon
-
-**Production**
-
-`npm run start`
-
-* App served @ `http://localhost:8181` without nodemon
-
----
-
-**All commands**
-
-Command | Description
---- | ---
-`npm run start:dev` | App served @ `http://localhost:8181` with nodemon
-`npm run start` | App served @ `http://localhost:8181` without nodemon
-
-**Note**: replace `npm` with `yarn` in `package.json` if you use yarn.
-
 # Assignment: Websocket battleship server
 
 ## Description
@@ -158,11 +126,11 @@ npm run start
         ```->```
         ```ts
         {
-            type: "create_game",
+            type: "create_game", //send for both players in the room
             data:
                 {
-                    idGame: <number>,  \* player id in the game *\
-                    idPlayer: <number>,
+                    idGame: <number>,  
+                    idPlayer: <number>, \* player id in the game *\
                 },
             id: 0,
         }
@@ -173,20 +141,18 @@ npm run start
         {
             type: "update_room",
             data:
-                {
-                    [
-                        {
-                            roomId: <number>,
-                            roomUsers:
-                                [
-                                    {
-                                        name: <string>,
-                                        index: <number>,
-                                    }
-                                ],
-                        },
-                    ]
-                },
+                [
+                    {
+                        roomId: <number>,
+                        roomUsers:
+                            [
+                                {
+                                    name: <string>,
+                                    index: <number>,
+                                }
+                            ],
+                    },
+                ],
             id: 0,
         }
         ```
@@ -248,7 +214,7 @@ npm run start
             type: "attack",
             data:
                 {
-                    gameID: <number>,
+                    gameId: <number>,
                     x: <number>,
                     y: <number>,
                     indexPlayer: <number>, /* id of the player in the current game */
@@ -281,7 +247,7 @@ npm run start
             type: "randomAttack",
             data:
                 {
-                    gameID: <number>,
+                    gameId: <number>,
                     indexPlayer: <number>, /* id of the player in the current game */
                 },
             id: 0,
@@ -311,3 +277,50 @@ npm run start
             id: 0,
         }
         ```
+
+## Websocket commands sequence
+```
+  Player1               Server                  Player2             
+    reg         -->                    
+                <--        reg     
+                <--    update_room    
+                <--   update_winners  
+ create_room    -->
+                <--    update_room    
+                                      <--         reg
+                           reg        -->
+                <--    update_room    -->
+                <--   update_winners  -->                       
+                                      <--    add_user_to_room
+                <--    update_room    -->
+                <--    create_game    -->
+   add_ships    -->
+                                      <--       add_ships
+                <--     start_game    -->  
+                <--        turn       -->  
+ attack (miss)  -->
+                <--       attack      -->  
+                <--        turn       -->
+                                      <--     randomAttack (shoot)
+                <--       attack      -->  
+                <--        turn       -->
+                                      <--     randomAttack (kill) - send state for all cells around killed ship
+                <--       attack      -->  
+                <--        turn       -->
+                <--       attack      -->  
+                <--        turn       -->                
+                <--       attack      -->  
+                <--        turn       -->
+                <--       attack      -->  
+                <--        turn       -->
+                           ...          
+                                      <--     randomAttack (miss)
+                <--       attack      -->  
+                <--        turn       -->    
+ attack (miss)  -->
+                <--       attack      -->  
+                <--        turn       -->
+                           ...                            
+                <--      finish       -->
+                <--   update_winners  -->
+```

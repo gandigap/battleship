@@ -1,18 +1,16 @@
 import Room from '../room';
 import { UserWebSocket } from '../types';
-import { Ship } from '../types/ship';
+import { Position, Ship } from '../types/ship';
 
 class RoomsDB {
   private rooms: Room [];
 
   constructor() {
-    console.log(' New rooms DB');
     this.rooms = [];
   }
 
   addRoom(ws: UserWebSocket) {
     const existRoom = this.getRoomByUserId(ws.index);
-    console.log('existRoom', existRoom);
     if (existRoom) {
       console.log('Player can`t create more than 1 room');
       return null;
@@ -25,11 +23,9 @@ class RoomsDB {
   }
 
   getRoomByUserId(id: number) {
-    console.log('getRoomByUserId', id, this.rooms, this.rooms.length);
     const room = this.rooms
-      .find(({ roomUsers: users }) => users.find((user) => user.index === id));
-
-    return room;
+      .find(({ roomUsers }) => roomUsers.find((roomUser) => roomUser.index === id));
+    return room || null;
   }
 
   getRooms() {
@@ -57,21 +53,45 @@ class RoomsDB {
   }
 
   getRoomByRoomID(id: number) {
-    return this.rooms.find(({ roomId }) => roomId === id);
+    const room = this.rooms.find(({ roomId }) => roomId === id);
+    return room || null;
   }
 
   getRoomByGameId(id: number) {
-    return this.rooms.find(({ game }) => game.idGame === id);
+    const room = this.rooms.find(({ game }) => game.idGame === id);
+    return room || null;
   }
 
   addShipsToGame(gameId: number, playerIndex: number, ships: Ship[]) {
     const room = this.getRoomByGameId(gameId);
     if (!room) {
-      console.log('Room isn`t exist!');
+      console.log('Skipped skips adding: no room/game found');
       return;
     }
 
     room.setPlayerShips(playerIndex, ships);
+  }
+
+  handleAttack(gameId: number, playerId: number, target: Position | null) {
+    const room = this.getRoomByGameId(gameId);
+
+    if (!room) {
+      console.log('Room or game didn`t found!');
+      return;
+    }
+
+    const isEndOfGame = room.handleAttack(playerId, target);
+
+    if (isEndOfGame) {
+      this.closeRoom(room.roomId);
+    }
+
+    // eslint-disable-next-line consistent-return
+    return isEndOfGame;
+  }
+
+  closeRoom(id: number) {
+    this.rooms = this.rooms.filter(({ roomId }) => roomId !== id);
   }
 }
 

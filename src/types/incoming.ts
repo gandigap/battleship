@@ -1,5 +1,5 @@
 import COMMANDS from './commands';
-import { Ship } from './ship';
+import { Position, Ship } from './ship';
 
 export type LoginData = {
   name: string;
@@ -42,8 +42,16 @@ export interface IncomingAddShipsCommand extends Identification {
   data: AddShipsData;
 }
 
+export interface IncomingAttackCommand extends Identification {
+  type: COMMANDS.attack;
+  data: AttackData;
+}
+
+export interface AttackData extends GeneralGameData, Position {}
+
 export type IncomingData =
 | IncomingRegisterCommand
 | IncomingCreateRoomCommand
 | IncomingAddPlayerToRoomCommand
-| IncomingAddShipsCommand;
+| IncomingAddShipsCommand
+| IncomingAttackCommand;

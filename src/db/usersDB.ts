@@ -5,11 +5,11 @@ import { IncomingRegisterCommand } from '../types/incoming';
 class UsersDB {
   private users: Map<number, User>;
 
-  private winners: Map<number, Winner >;
+  private winners: Winner [];
 
   constructor() {
     this.users = new Map();
-    this.winners = new Map();
+    this.winners = [];
   }
 
   authorization(message : IncomingRegisterCommand) {
@@ -46,7 +46,7 @@ class UsersDB {
         const user = new User(name, password);
 
         this.users.set(user.index, user);
-        this.winners.set(user.index, { name, wins: 0 });
+        this.winners.push({ name, wins: 0 });
         userResponse.index = user.index;
       }
 
@@ -65,6 +65,13 @@ class UsersDB {
 
   getWinners() {
     return Array.from(this.winners.values());
+  }
+
+  markTheWinner(playerId: number) {
+    const user = this.users.get(playerId);
+    this.winners = this.winners
+      .map(({ name, wins }) => (name === user?.name ? { name, wins: wins + 1 } : { name, wins }))
+      .sort((winnerA, winnerB) => winnerB.wins - winnerA.wins);
   }
 }
 

@@ -5,33 +5,39 @@ export interface Ship {
   direction: boolean;
 }
 
-interface Position {
+export interface Position {
   x: number;
   y: number;
 }
 
-export enum PartState {
-  Healthy = 'healty',
-  Damaged = 'damaged',
+export enum PartShipState {
+  healthy = 'healty',
+  damaged = 'damaged',
 }
-interface Part extends Position {
-  partState: PartState;
+interface PartShip extends Position {
+  partShipState: PartShipState;
 }
 
 export interface ShipData {
   state: ShipState;
-  parts: Part[];
+  parts: PartShip[];
 }
 
 export enum ShipState {
-  Healthy = 'healty',
-  Damaged = 'damaged',
-  Sunk = 'sunk',
+  healthy = 'healty',
+  damaged = 'damaged',
+  sunk = 'sunk',
 }
 
 export enum ShipType {
   small = 'small',
-  Medium = 'medium',
-  Large = 'large',
+  medium = 'medium',
+  large = 'large',
   huge = 'huge',
+}
+
+export enum AttackResult {
+  miss = 'miss',
+  killed = 'killed',
+  shot = 'shot',
 }

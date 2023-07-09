@@ -8,6 +8,8 @@ enum COMMANDS {
   update_room = 'update_room',
   update_winners = 'update_winners',
   create_room = 'create_room',
+  add_user_to_room = 'add_user_to_room',
+  add_ships = 'add_ships',
 }
 
 export default COMMANDS;

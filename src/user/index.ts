@@ -3,7 +3,7 @@ class User {
 
   name: string;
 
-  password: string;
+  password?: string;
 
   index: number;
 

@@ -1,4 +1,6 @@
-import { Server, RawData, WebSocketServer } from 'ws';
+import {
+  Server, RawData, WebSocketServer, WebSocket,
+} from 'ws';
 import convertMessage from '../utils/convert-message';
 import Controller from '../controllers';
 
@@ -12,12 +14,14 @@ export default class WsServer {
   constructor(port: number) {
     this.port = port;
     this.server = new WebSocketServer({ port });
-    this.controller = new Controller(this.transfer.bind(this));
+    this.controller = new Controller(this.clientsNotify.bind(this));
   }
 
-  transfer(message: string) {
+  clientsNotify(message: string) {
     this.server.clients.forEach((client) => {
-      client.send(message);
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
     });
   }
 

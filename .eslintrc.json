@@ -16,7 +16,8 @@
   "rules": {
     "block-spacing": "error",
     "space-infix-ops": "error",
-    "no-param-reassign": 0
+    "no-param-reassign": 0,
+    "no-restricted-syntax": ["error", "WithStatement", "BinaryExpression[operator='in']"]
   },
   "plugins": [ "@typescript-eslint", "prettier" ],
   "extends": [

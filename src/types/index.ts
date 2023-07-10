@@ -1,7 +1,8 @@
 import { WebSocket } from 'ws';
-import User from '../user';
 
-export interface UserWebSocket extends WebSocket, User {}
+export interface UserWebSocket extends WebSocket {
+  [x: string]: any;
+}
 
 export interface Winner {
   name: string;

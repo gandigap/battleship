@@ -1,5 +1,5 @@
-import User from '../user';
 import { Winner } from '.';
+import Room from '../db/room';
 import { AttackResult, Position, Ship } from './ship';
 
 export type ErrorMessage = {
@@ -12,17 +12,12 @@ export interface RegisterData extends ErrorMessage {
   index: number;
 }
 
-export type UpdateRoomData = UpdateRoom [];
+export type UpdateRoomData = Room [];
 export type UpdateWinnersData = Winner [];
 
 export interface CreateGameData {
   idGame: number;
   idPlayer: number;
-}
-
-export interface UpdateRoom {
-  roomId: number;
-  roomUsers: User[];
 }
 
 export interface StartGameData {

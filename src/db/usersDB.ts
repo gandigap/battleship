@@ -37,11 +37,9 @@ export const playerAutorization = (message: IncomingRegisterCommand) => {
       const newUser = new User(name, password);
 
       users.set(newUser.userId, newUser);
-      winners.push();
+      winners.push({ name, wins: 0 });
       responseUserMessage.index = newUser.userId;
     }
-
-    console.log(users);
 
     return responseUserMessage;
   } catch (error) {
@@ -51,10 +49,6 @@ export const playerAutorization = (message: IncomingRegisterCommand) => {
     return responseUserMessage;
   }
 };
-
-//   getWinners() {
-//     return Array.from(this.winners.values());
-//   }
 
 //   markTheWinner(playerId: number) {
 //     const user = this.users.get(playerId);

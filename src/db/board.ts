@@ -9,12 +9,22 @@ class Board {
 
   indexPlayer: number;
 
-  constructor(gameId:number, turnUserId: number, ships: Ship[], userId: number) {
+  cell?: any;
+
+  previousAttacks: string[];
+
+  constructor(
+    gameId:number,
+    turnUserId: number,
+    ships: Ship[],
+    userId: number,
+    previousAttacks = [],
+  ) {
     this.gameId = gameId;
     this.turnUserId = turnUserId;
     this.ships = ships;
     this.indexPlayer = userId;
-    console.log(`Create new board by id: ${gameId}`);
+    this.previousAttacks = previousAttacks;
   }
 }
 

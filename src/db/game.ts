@@ -9,11 +9,12 @@ class Game {
 
   gameId: number;
 
+  turnUserId?: number;
+
   constructor(boards: Map <number, Board>, init: number) {
     this.boards = boards;
     this.init = init;
     this.gameId = Game.gameId;
-    console.log(`Create new game by id: ${Game.gameId}`);
     Game.gameId += 1;
   }
 }

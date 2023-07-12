@@ -6,7 +6,11 @@ import getOutgoingMessage from '../utils/get-outgoing-message';
 import { addPlayerToRoom, createRoom, updateRooms } from '../db/roomsDB';
 import { playerAutorization, winners } from '../db/usersDB';
 import { UserWebSocket } from '../types';
-import { createGame, newGameUser } from '../db/gameDB';
+import {
+  addShipsToGame, doAttack, createGame,
+  getPlayerGameData, getTurnUserId, newGameUser, setTurnUserId, startGame,
+} from '../db/gameDB';
+import { OutgoingData } from '../types/outcoming';
 
 const wsServer = new WebSocketServer({ port: Number(PORT) });
 
@@ -34,7 +38,11 @@ wsServer.on('connection', (ws) => {
           ws.send(roomsResponse);
 
           const winnersResponse = getOutgoingMessage(COMMANDS.update_winners, winners);
-          console.log('winnersResponse', winnersResponse);
+          wsServer.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(winnersResponse);
+            }
+          });
           //       this.clientsNotify(winnersResponse);
           break;
         }
@@ -83,35 +91,132 @@ wsServer.on('connection', (ws) => {
           break;
         }
 
-        // case COMMANDS.add_ships: {
-        //   const {
-        //     data: { gameId, indexPlayer, ships },
-        //   } = convertedMessage;
+        case COMMANDS.add_ships: {
+          const {
+            data: { gameId, indexPlayer },
+          } = convertedMessage;
+          const addShipsGameMessage = addShipsToGame(convertedMessage);
 
-        //   this.roomsDB.addShipsToGame(gameId, indexPlayer, ships);
-        //   break;
-        // }
+          if (addShipsGameMessage?.init === 2) {
+            const oppositePlayerData = getPlayerGameData(gameId, indexPlayer);
 
-        //     case COMMANDS.attack: {
-        //       const { data } = convertedMessage;
-        //       const { gameId, indexPlayer } = data;
+            const { currentPlayerIndex } = oppositePlayerData;
 
-        //       const { x, y } = data as AttackData;
+            const currentPlayerData = getPlayerGameData(
+              gameId,
+              currentPlayerIndex,
+            );
 
-        //       const target: Position | null = x !== undefi
-        // ned && y !== undefined ? { x, y } : null;
+            const currentResponse = getOutgoingMessage(COMMANDS.start_game, currentPlayerData);
 
-        //       const isEndOfGame = this.roomsDB.handleAttack(gameId, indexPlayer, target);
+            ws.send(currentResponse);
 
-        //       if (isEndOfGame) {
-        //         this.userDB.markTheWinner(indexPlayer);
-        //         const winners = this.userDB.getWinners();
-        //         const winnersResponse = getOutgoingMessage(COMMANDS.update_winners, winners);
+            wsServer.clients.forEach((client : any) => {
+              if (client.readyState === WebSocket.OPEN) {
+                if (client.userId === currentPlayerIndex) {
+                  const opposResponse = getOutgoingMessage(COMMANDS.start_game, oppositePlayerData);
 
-        //         this.clientsNotify(winnersResponse);
-        //       }
-        //       break;
-        //     }
+                  client.send(opposResponse);
+
+                  startGame(gameId);
+
+                  setTurnUserId(gameId, indexPlayer);
+
+                  const turnPlayerId = {
+                    currentPlayer: indexPlayer,
+                  };
+                  const turnResponse = getOutgoingMessage(COMMANDS.turn, turnPlayerId);
+
+                  client.send(turnResponse);
+                }
+              }
+            });
+
+            const turnPlayerId = {
+              currentPlayer: indexPlayer,
+            };
+
+            const turnResponse = getOutgoingMessage(COMMANDS.turn, turnPlayerId);
+
+            ws.send(JSON.stringify(turnResponse));
+          }
+          break;
+        }
+
+        case COMMANDS.attack: {
+          const {
+            data: { gameId, indexPlayer },
+          } = convertedMessage;
+
+          if (indexPlayer !== getTurnUserId(gameId)) {
+            return;
+          }
+
+          const resultAttack = doAttack(convertedMessage);
+
+          const resAttackData = resultAttack.resData;
+          const attackedPlayerId = resultAttack.partnerId;
+
+          const attackResponses = getOutgoingMessage(COMMANDS.attack, resAttackData);
+
+          ws.send(attackResponses);
+
+          wsServer.clients.forEach((client : any) => {
+            if (client.readyState === WebSocket.OPEN) {
+              if (client.userId === attackedPlayerId) {
+                client.send(attackResponses);
+              }
+            }
+          });
+
+          if (resAttackData.status === 'miss') {
+            setTurnUserId(gameId, attackedPlayerId);
+            const tnResp = getOutgoingMessage(COMMANDS.turn, { currentPlayer: attackedPlayerId });
+
+            ws.send(tnResp);
+
+            wsServer.clients.forEach((client: any) => {
+              if (client.readyState === WebSocket.OPEN) {
+                if (client.userId === attackedPlayerId) {
+                  client.send(tnResp);
+                }
+              }
+            });
+          } else if (resAttackData.status === 'killed') {
+            const { aroundCells } = resultAttack;
+            for (let index = 0; index < aroundCells.length; index += 1) {
+              const item = aroundCells[index];
+
+              const atResp = getOutgoingMessage(COMMANDS.attack, item as OutgoingData);
+              ws.send(atResp);
+
+              wsServer.clients.forEach((client: any) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  if (client.userId === attackedPlayerId) {
+                    client.send(atResp);
+                  }
+                }
+              });
+            }
+
+            const { finish } = resultAttack;
+            if (finish) {
+              const finishResp = getOutgoingMessage(COMMANDS.finish, { winPlayer: indexPlayer });
+
+              ws.send(finishResp);
+
+              wsServer.clients.forEach((client: any) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  if (client.userId === attackedPlayerId) {
+                    client.send(finishResp);
+                  }
+                }
+              });
+            }
+          }
+
+          break;
+        }
 
         default:
           console.log('default');

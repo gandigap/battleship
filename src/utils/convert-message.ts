@@ -2,7 +2,6 @@ import { RawData } from 'ws';
 
 const convertMessage = (message: RawData) => {
   const { data: dataMessage, ...rest } = JSON.parse(message.toString());
-  console.log('message___', JSON.parse(message.toString()));
   const data = dataMessage === '' ? dataMessage : JSON.parse(dataMessage);
 
   return {

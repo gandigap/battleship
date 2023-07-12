@@ -1,6 +1,6 @@
 import { Winner } from '.';
 import Room from '../db/room';
-import { AttackResult, Position, Ship } from './ship';
+import { AttackStatus, Position, Ship } from './ship';
 
 export type ErrorMessage = {
   error: boolean;
@@ -31,7 +31,7 @@ export interface CurrentPlayerData {
 
 export interface AttackData extends CurrentPlayerData {
   position: Position;
-  status: AttackResult;
+  status: AttackStatus;
 }
 export interface FinishData {
   winPlayer: number;

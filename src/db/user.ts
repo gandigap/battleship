@@ -11,7 +11,6 @@ class User {
     this.name = name;
     this.password = password;
     this.userId = User.userId;
-    console.log(`Create new user by id: ${User.userId}`);
     User.userId += 1;
   }
 }

@@ -15,20 +15,17 @@ export interface AddPlayerToRoomData {
   indexRoom: number;
 }
 
-export interface Identification {
-  id: number;
-}
-export interface IncomingAddPlayerToRoomCommand extends Identification {
+export interface IncomingAddPlayerToRoomCommand {
   type: COMMANDS.add_user_to_room;
   data: AddPlayerToRoomData;
 }
 
-export interface IncomingRegisterCommand extends Identification {
+export interface IncomingRegisterCommand {
   type: COMMANDS.reg;
   data: LoginData;
 }
 
-export interface IncomingCreateRoomCommand extends Identification {
+export interface IncomingCreateRoomCommand {
   type: COMMANDS.create_room;
   data: '';
 }
@@ -37,12 +34,12 @@ export interface AddShipsData extends GeneralGameData {
   ships: Ship[];
 }
 
-export interface IncomingAddShipsCommand extends Identification {
+export interface IncomingAddShipsCommand {
   type: COMMANDS.add_ships;
   data: AddShipsData;
 }
 
-export interface IncomingAttackCommand extends Identification {
+export interface IncomingAttackCommand {
   type: COMMANDS.attack;
   data: AttackData;
 }

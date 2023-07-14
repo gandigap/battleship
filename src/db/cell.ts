@@ -56,5 +56,3 @@ export const createCell = (ships: Ship []) => {
 
   return cell;
 };
-
-export default createCell;

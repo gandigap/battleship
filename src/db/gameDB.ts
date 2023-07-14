@@ -2,7 +2,7 @@ import { IncomingAddShipsCommand } from '../types/incoming';
 import { StartGameData } from '../types/outcoming';
 import { AttackStatus } from '../types/ship';
 import Board from './board';
-import createCell from './cell';
+import { createCell } from './cell';
 import Game from './game';
 
 const games = new Map<number, Game>();
@@ -14,18 +14,29 @@ export const createGame = () => {
   return game.gameId;
 };
 
+const setPseudoRandom = () => {
+  const array = [];
+  for (let i = 0; i < 10; i += 1) {
+    for (let k = 0; k < 10; k += 1) {
+      array.push(`${i},${k}`);
+    }
+  }
+  return array;
+};
+
 export const newGameUser = (gameId :number, userId:number) => {
   const game = games.get(gameId);
-
+  const board = new Board(
+    gameId,
+    0,
+    [],
+    userId,
+    setPseudoRandom(),
+    [],
+  );
   game?.boards.set(
     userId,
-    {
-      gameId,
-      turnUserId: 0,
-      ships: [],
-      indexPlayer: userId,
-      previousAttacks: [],
-    },
+    board,
   );
 
   return { idGame: gameId, idPlayer: userId };
@@ -85,14 +96,25 @@ export const getTurnUserId = (gameId: number) => {
   return currentGame.turnUserId;
 };
 
+const getRandomCell = (board: Board) => {
+  const randomIndexValue = Math.floor(Math.random() * board.pseudoRandom.length);
+  const value = board.pseudoRandom[randomIndexValue] as string;
+
+  const [x, y] = value.split(',');
+  board.removePseudoRandom(value);
+  return { x: Number(x), y: Number(y) };
+};
+
 export const doAttack = (attackData : any) => {
   const {
     data: {
-      gameId, indexPlayer, x, y,
+      gameId, indexPlayer, x: datax, y: datay,
     },
   } = attackData;
-  const currentGame = games.get(gameId) as Game;
 
+  const currentGame = games.get(gameId) as Game;
+  let x = datax;
+  let y = datay;
   let finish = true;
   let partnerId = 0;
   let currentBoard = {} as Board;
@@ -104,10 +126,14 @@ export const doAttack = (attackData : any) => {
     }
   }
 
+  const isRandom = x !== undefined && y !== undefined;
+  if (!isRandom) {
+    const res = getRandomCell(currentBoard);
+    x = res.x;
+    y = res.y;
+  }
   const indexCell = x * 10 + y;
-
   const currentCell = currentBoard.cell.get(indexCell);
-
   const aroundCells = [];
   const isBoardIncludesPreviuosAttack = currentBoard.previousAttacks.includes(`${x},${y}`);
 
@@ -136,7 +162,6 @@ export const doAttack = (attackData : any) => {
           directionX = 0;
           directionY = 1;
         }
-
         for (let index = 0; index < attackedShip.length + 2; index += 1) {
           if ((
             (attackX >= 0 && attackX <= 9 && attackY >= 0 && attackY <= 9) && (k === 0 || k === 2)
@@ -149,7 +174,6 @@ export const doAttack = (attackData : any) => {
               attack: 1,
               status: AttackStatus.miss,
             });
-
             const missCell = {
               position: {
                 x: attackX,
@@ -183,7 +207,6 @@ export const doAttack = (attackData : any) => {
           attackX += directionX;
           attackY += directionY;
         }
-
         if (!attackedShip.direction) {
           attackX = attackedShip.position.x - 1;
           attackY += 1;
@@ -204,13 +227,11 @@ export const doAttack = (attackData : any) => {
     currentCell.status = AttackStatus.miss;
   }
   if (!isBoardIncludesPreviuosAttack)currentBoard.previousAttacks?.push(`${x},${y}`);
-
   const resData = {
     position: { x, y },
     currentPlayer: indexPlayer,
     status: currentCell.status,
   };
-
   return {
     resData, partnerId, aroundCells, finish,
   };

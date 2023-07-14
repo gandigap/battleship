@@ -25,7 +25,7 @@ export const createRoom = (userId : number) => {
   const player = users.get(userId);
   const existRoom = getRoomByUserId(userId);
   if (existRoom) {
-    console.log('Player can`t create more than 1 room\n');
+    process.stdout.write('Player can`t create more than 1 room\n');
     return rooms;
   }
 

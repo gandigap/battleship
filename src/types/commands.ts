@@ -10,6 +10,7 @@ enum COMMANDS {
   create_room = 'create_room',
   add_user_to_room = 'add_user_to_room',
   add_ships = 'add_ships',
+  randomAttack = 'randomAttack',
 }
 
 export default COMMANDS;

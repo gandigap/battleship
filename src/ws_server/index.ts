@@ -4,7 +4,7 @@ import { PORT } from '../config';
 import COMMANDS from '../types/commands';
 import getOutgoingMessage from '../utils/get-outgoing-message';
 import { addPlayerToRoom, createRoom, updateRooms } from '../db/roomsDB';
-import { playerAutorization, winners } from '../db/usersDB';
+import { playerAutorization, setWinner, winners } from '../db/usersDB';
 import { UserWebSocket } from '../types';
 import {
   addShipsToGame, doAttack, createGame,
@@ -20,40 +20,52 @@ wsServer.on('connection', (ws) => {
   ws.on('message', (message: RawData) => {
     try {
       const convertedMessage = convertMessage(message);
-
       const { type } = convertedMessage;
       const { userId } = ws as UserWebSocket;
 
       switch (type) {
         case COMMANDS.reg: {
           const userAutorizationMessage = playerAutorization(convertedMessage);
-          const addUserMessage = getOutgoingMessage(COMMANDS.reg, userAutorizationMessage);
+          const regResult = getOutgoingMessage(COMMANDS.reg, userAutorizationMessage);
+
+          process.stdout.write(`Reg result: ${regResult}\n`);
           (ws as UserWebSocket).userId = userAutorizationMessage.index;
 
-          ws.send(addUserMessage);
+          ws.send(regResult);
 
           const updateRoomsMessage = updateRooms();
-          const roomsResponse = getOutgoingMessage(COMMANDS.update_room, updateRoomsMessage);
+          const updateRoomsResult = getOutgoingMessage(COMMANDS.update_room, updateRoomsMessage);
+          process.stdout.write(`Update_room result: ${updateRoomsResult}\n`);
 
-          ws.send(roomsResponse);
+          ws.send(updateRoomsResult);
 
-          const winnersResponse = getOutgoingMessage(COMMANDS.update_winners, winners);
+          const winnersResult = getOutgoingMessage(COMMANDS.update_winners, winners);
+          process.stdout.write(`Update_winners result: ${winnersResult}\n`);
+
           wsServer.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-              client.send(winnersResponse);
+              client.send(winnersResult);
             }
           });
-          //       this.clientsNotify(winnersResponse);
           break;
         }
 
         case COMMANDS.create_room: {
           const newRoom = createRoom(userId);
-          const updateRoomsMessage = getOutgoingMessage(COMMANDS.update_room, newRoom);
+          const updateRoomsResult = getOutgoingMessage(COMMANDS.update_room, newRoom);
+          process.stdout.write(`Update_room result: ${updateRoomsResult}\n`);
+          wsServer.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(updateRoomsResult);
+            }
+          });
+
+          const winnersResult = getOutgoingMessage(COMMANDS.update_winners, winners);
+          process.stdout.write(`Update_winners result: ${winnersResult}\n`);
 
           wsServer.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-              client.send(updateRoomsMessage);
+              client.send(winnersResult);
             }
           });
           break;
@@ -72,18 +84,18 @@ wsServer.on('connection', (ws) => {
                 if (client.userId === roomPlayers[0] || client.userId === roomPlayers[1]) {
                   const resNewGameData = newGameUser(newGameId, client.userId);
                   const roomsResponse = getOutgoingMessage(COMMANDS.create_game, resNewGameData);
-
+                  process.stdout.write(`Create_game result: ${roomsResponse}\n`);
                   client.send(roomsResponse);
                 }
               }
             });
 
-            const updateRoomsMessage = updateRooms();
+            const updateRoomsResult = updateRooms();
 
             wsServer.clients.forEach((client) => {
               if (client.readyState === WebSocket.OPEN) {
-                const roomsResponse = getOutgoingMessage(COMMANDS.update_room, updateRoomsMessage);
-
+                const roomsResponse = getOutgoingMessage(COMMANDS.update_room, updateRoomsResult);
+                process.stdout.write(`Update_room result: ${roomsResponse}\n`);
                 ws.send(roomsResponse);
               }
             });
@@ -107,15 +119,15 @@ wsServer.on('connection', (ws) => {
               currentPlayerIndex,
             );
 
-            const currentResponse = getOutgoingMessage(COMMANDS.start_game, currentPlayerData);
-
-            ws.send(currentResponse);
+            const startGameResult = getOutgoingMessage(COMMANDS.start_game, currentPlayerData);
+            process.stdout.write(`Start_game result: ${startGameResult}\n`);
+            ws.send(startGameResult);
 
             wsServer.clients.forEach((client : any) => {
               if (client.readyState === WebSocket.OPEN) {
                 if (client.userId === currentPlayerIndex) {
                   const opposResponse = getOutgoingMessage(COMMANDS.start_game, oppositePlayerData);
-
+                  process.stdout.write(`Start_game result: ${startGameResult}\n`);
                   client.send(opposResponse);
 
                   startGame(gameId);
@@ -126,7 +138,7 @@ wsServer.on('connection', (ws) => {
                     currentPlayer: indexPlayer,
                   };
                   const turnResponse = getOutgoingMessage(COMMANDS.turn, turnPlayerId);
-
+                  process.stdout.write(`Turn result: ${turnResponse}\n`);
                   client.send(turnResponse);
                 }
               }
@@ -136,19 +148,20 @@ wsServer.on('connection', (ws) => {
               currentPlayer: indexPlayer,
             };
 
-            const turnResponse = getOutgoingMessage(COMMANDS.turn, turnPlayerId);
-
-            ws.send(JSON.stringify(turnResponse));
+            const turnResult = getOutgoingMessage(COMMANDS.turn, turnPlayerId);
+            process.stdout.write(`Turn result: ${turnResult}\n`);
+            ws.send(JSON.stringify(turnResult));
           }
           break;
         }
-
+        case COMMANDS.randomAttack:
         case COMMANDS.attack: {
           const {
             data: { gameId, indexPlayer },
           } = convertedMessage;
 
           if (indexPlayer !== getTurnUserId(gameId)) {
+            process.stdout.write('Should turn another player\n');
             return;
           }
 
@@ -157,28 +170,31 @@ wsServer.on('connection', (ws) => {
           const resAttackData = resultAttack.resData;
           const attackedPlayerId = resultAttack.partnerId;
 
-          const attackResponses = getOutgoingMessage(COMMANDS.attack, resAttackData);
-
-          ws.send(attackResponses);
+          const attackResult = getOutgoingMessage(COMMANDS.attack, resAttackData);
+          process.stdout.write(`Attack result: ${attackResult}\n`);
+          ws.send(attackResult);
 
           wsServer.clients.forEach((client : any) => {
             if (client.readyState === WebSocket.OPEN) {
               if (client.userId === attackedPlayerId) {
-                client.send(attackResponses);
+                client.send(attackResult);
               }
             }
           });
 
           if (resAttackData.status === 'miss') {
             setTurnUserId(gameId, attackedPlayerId);
-            const tnResp = getOutgoingMessage(COMMANDS.turn, { currentPlayer: attackedPlayerId });
-
-            ws.send(tnResp);
+            const turnResult = getOutgoingMessage(
+              COMMANDS.turn,
+              { currentPlayer: attackedPlayerId },
+            );
+            process.stdout.write(`Turn result: ${turnResult}\n`);
+            ws.send(turnResult);
 
             wsServer.clients.forEach((client: any) => {
               if (client.readyState === WebSocket.OPEN) {
                 if (client.userId === attackedPlayerId) {
-                  client.send(tnResp);
+                  client.send(turnResult);
                 }
               }
             });
@@ -187,13 +203,14 @@ wsServer.on('connection', (ws) => {
             for (let index = 0; index < aroundCells.length; index += 1) {
               const item = aroundCells[index];
 
-              const atResp = getOutgoingMessage(COMMANDS.attack, item as OutgoingData);
-              ws.send(atResp);
+              const killedResult = getOutgoingMessage(COMMANDS.attack, item as OutgoingData);
+              process.stdout.write(`Attack result: ${killedResult}\n`);
+              ws.send(killedResult);
 
               wsServer.clients.forEach((client: any) => {
                 if (client.readyState === WebSocket.OPEN) {
                   if (client.userId === attackedPlayerId) {
-                    client.send(atResp);
+                    client.send(killedResult);
                   }
                 }
               });
@@ -201,6 +218,8 @@ wsServer.on('connection', (ws) => {
 
             const { finish } = resultAttack;
             if (finish) {
+              process.stdout.write('finsh\n');
+              setWinner(indexPlayer);
               const finishResp = getOutgoingMessage(COMMANDS.finish, { winPlayer: indexPlayer });
 
               ws.send(finishResp);
@@ -212,6 +231,15 @@ wsServer.on('connection', (ws) => {
                   }
                 }
               });
+
+              const winnersResult = getOutgoingMessage(COMMANDS.update_winners, winners);
+              process.stdout.write(`Update_winners result: ${winnersResult}\n`);
+
+              wsServer.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(winnersResult);
+                }
+              });
             }
           }
 
@@ -219,19 +247,23 @@ wsServer.on('connection', (ws) => {
         }
 
         default:
-          console.log('default');
+          process.stdout.write('default\n');
           break;
       }
     } catch (error) {
-      console.log('error');
+      process.stdout.write(`Error: ${error}\n`);
     }
   });
 
   ws.on('open', (message: RawData) => {
-    console.log('Open', message);
+    process.stdout.write(`Open : ${message}\n`);
   });
 
   ws.on('close', (message) => {
-    console.log('Close', message);
+    process.stdout.write(`Close : ${message}\n`);
+  });
+
+  ws.on('listening', () => {
+    process.stdout.write(`Start ws server http server on the ${PORT} port!\n`);
   });
 });

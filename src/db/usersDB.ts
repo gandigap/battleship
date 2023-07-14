@@ -50,12 +50,13 @@ export const playerAutorization = (message: IncomingRegisterCommand) => {
   }
 };
 
-//   markTheWinner(playerId: number) {
-//     const user = this.users.get(playerId);
-//     this.winners = this.winners
-//       .map(({ name, wins }) => (name === user?.name ? { name, wins: wins + 1 } : { name, wins }))
-//       .sort((winnerA, winnerB) => winnerB.wins - winnerA.wins);
-//   }
-// }
-
-// export default UsersDB;
+export const setWinner = (playerId: number) => {
+  const user = users.get(playerId);
+  const index = winners.findIndex((winner) => winner.name === user?.name);
+  const winner = winners[index];
+  if (winner) {
+    const { name, wins } = winner;
+    winners[index] = { name, wins: wins + 1 };
+    winners.sort((winnerA, winnerB) => winnerB.wins - winnerA.wins);
+  }
+};
